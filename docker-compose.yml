@@ -4,9 +4,8 @@ services:
       context: .
       target: ${BUILD_TARGET:-main}
     command: /code/.venv/bin/fastapi run app/main.py --port 8080 --proxy-headers
-    env_file: ${APP_VOLUME_PATH:-.}/.env
     volumes:
-      - ${APP_VOLUME_PATH:-/tmp}/app-logs:/code/logs
+      - app-logs:/code/logs
     depends_on:
       redis:
         condition: service_healthy
@@ -20,9 +19,8 @@ services:
       context: .
       target: ${BUILD_TARGET:-main}
     command: crond -f
-    env_file: ${APP_VOLUME_PATH:-.}/.env
     volumes:
-      - ${APP_VOLUME_PATH:-/tmp}/worker-logs:/code/logs
+      - worker-logs:/code/logs
     depends_on:
       redis:
         condition: service_healthy
@@ -42,7 +40,7 @@ services:
     # Run as privileged to allow the container to change the vm.overcommit_memory setting
     privileged: true
     volumes:
-      - ${APP_VOLUME_PATH}/redis-data:/data
+      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
@@ -62,3 +60,8 @@ services:
       test: ["CMD-SHELL", "wget --spider --quiet http://localhost || exit 1"]
       interval: 5s
       timeout: 2s
+
+volumes:
+    redis-data:
+    app-logs:
+    worker-logs:
